@@ -110,6 +110,19 @@ def test_gate_fail_open_passes_on_unreachable():
     fetch = raising_fetch(urllib.error.URLError("connection refused"))
     v = before_settle("did:aura:trusted-bot", fail_open=True, _fetch=fetch)
     assert v.verdict == "unknown"
+    assert v.reachable is False
+
+
+def test_fail_open_does_not_pass_reachable_unknown():
+    # A reachable AURA that returns `unknown` (ghost DID) is still rejected even
+    # with fail_open — fail_open only excuses transport failures.
+    with pytest.raises(AuraUntrusted):
+        before_settle("did:aura:ghost-bot", fail_open=True, _fetch=FETCH)
+
+
+def test_reachable_verdict_marked_reachable():
+    v = aura_verdict("did:aura:ghost-bot", _fetch=FETCH)
+    assert v.reachable is True
 
 
 # ── input validation ──────────────────────────────────────────────────────────
